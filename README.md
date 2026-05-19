@@ -12,7 +12,7 @@ Then:
 
 ```sh
 curl http://localhost:4444/
-# {"Name":"Hello","Description":"Students","Url":"localhost:4444"}
+# {"Name":"Hello","Description":"AI Assistant","Url":"localhost:4444"}
 ```
 
 Listens on `:4444`.
