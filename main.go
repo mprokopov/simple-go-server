@@ -14,7 +14,7 @@ type Simple struct {
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
-	simple := Simple{"Hello", "Webhook Test 2", r.Host}
+	simple := Simple{"Hello", "Webhook Test 3", r.Host}
 
 	jsonOutput, _ := json.Marshal(simple)
 
