@@ -17,6 +17,18 @@ pipeline {
     stages {
         // Each `stage` shows up as a column in the Jenkins Blue Ocean / pipeline
         // view, making it easy to see where a build passed or failed.
+
+        // Tests run *before* Build: fail-fast means we don't waste time
+        // producing a binary when the logic is already known broken.
+        stage('Test') {
+            steps {
+                // Single-file mode (no go.mod in this repo), so we name the
+                // sources explicitly. With a module, `go test ./...` would
+                // discover packages automatically.
+                sh "go test main.go main_test.go"
+            }
+        }
+
         stage('Build') {
             steps {
                 // `sh` runs a shell command on the agent. The Go toolchain
