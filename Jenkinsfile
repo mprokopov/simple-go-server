@@ -8,7 +8,7 @@ pipeline {
     agent any
 
     // `tools` auto-installs and PATH-injects a tool defined under
-    // Manage Jenkins → Tools. The name "1.26" must match a Go installation
+    // Manage Jenkins → Tools. The name "1.24.1" must match a Go installation
     // configured there; otherwise the build fails before any stage runs.
     tools {
        go "1.24.1"
