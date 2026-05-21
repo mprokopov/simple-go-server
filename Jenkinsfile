@@ -37,5 +37,33 @@ pipeline {
                 sh "go build main.go"
             }
         }
+
+        stage('Deploy') {
+            steps {
+                // `withCredentials` binds a Jenkins credential to env vars only
+                // for the duration of this block, then revokes them. The key
+                // file is written to a temp path and removed on exit — it
+                // never persists on the agent disk.
+                //
+                // credentialsId must match the ID you set when creating the
+                // SSH credential in Jenkins (Manage Jenkins → Credentials).
+                withCredentials([sshUserPrivateKey(
+                    credentialsId: 'laborant',
+                    keyFileVariable: 'SSH_KEY',
+                    usernameVariable: 'SSH_USER'
+                )]) {
+                    // Single-quoted heredoc: Groovy does NOT interpolate
+                    // here, so $SSH_KEY/$SSH_USER reach the shell intact and
+                    // Jenkins's credential-masker can scrub them from logs.
+                    // Double quotes would expand them in Groovy first,
+                    // leaking the temp-file path into the rendered command.
+                    sh '''
+                        mkdir -p ~/.ssh
+                        ssh-keyscan -H target >> ~/.ssh/known_hosts
+                        scp -i "$SSH_KEY" main "$SSH_USER"@target:/home/laborant/main
+                    '''
+                }
+            }
+        }
     }
 }
