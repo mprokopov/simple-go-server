@@ -11,7 +11,7 @@ pipeline {
     // Manage Jenkins → Tools. The name "1.26" must match a Go installation
     // configured there; otherwise the build fails before any stage runs.
     tools {
-       go "1.26"
+       go "1.24.1"
     }
 
     stages {
