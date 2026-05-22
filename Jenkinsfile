@@ -60,8 +60,14 @@ pipeline {
                     sh '''
                         mkdir -p ~/.ssh
                         ssh-keyscan -H target >> ~/.ssh/known_hosts
-                        scp -i "$SSH_KEY" main "$SSH_USER"@target:/home/laborant/main
-                        ssh -i "$SSH_KEY" "$SSH_USER"@target 'sudo systemctl restart main.service'
+                        # Atomic deploy: scp to a sidecar name, then rename(2)
+                        # over the running binary. Direct overwrite would fail
+                        # with ETXTBSY ("Text file busy") because the kernel
+                        # refuses O_WRONLY on a file that's currently mmap'd
+                        # PROT_EXEC. rename gives the path a fresh inode while
+                        # the running process keeps its old (now-unlinked) one.
+                        scp -i "$SSH_KEY" main "$SSH_USER"@target:/home/laborant/main.new
+                        ssh -i "$SSH_KEY" "$SSH_USER"@target 'mv /home/laborant/main.new /home/laborant/main && sudo systemctl restart main.service'
                     '''
                 }
             }
