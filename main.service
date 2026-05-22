@@ -1,0 +1,26 @@
+[Unit]
+Description=Simple Go HTTP server (JSON on :4444)
+# Wait for the network stack so the listen() on :4444 doesn't race boot.
+After=network.target
+
+[Service]
+# Runs as the same unprivileged user we deploy as — no sudo for restart,
+# no root-owned files left in /home/laborant.
+User=laborant
+Group=laborant
+
+WorkingDirectory=/home/laborant
+ExecStart=/home/laborant/main
+
+# Restart on crash but not on clean exit (status 0). `always` would loop
+# even when you intentionally `systemctl stop` mid-shutdown; `on-failure`
+# is the safer default for a long-running daemon.
+Restart=on-failure
+RestartSec=2
+
+# Forward stdout/stderr to journald — `journalctl -u main.service` then works.
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
