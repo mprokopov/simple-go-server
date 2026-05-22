@@ -53,21 +53,23 @@ pipeline {
                     usernameVariable: 'SSH_USER'
                 )]) {
                     // Single-quoted heredoc: Groovy does NOT interpolate
-                    // here, so $SSH_KEY/$SSH_USER reach the shell intact and
-                    // Jenkins's credential-masker can scrub them from logs.
-                    // Double quotes would expand them in Groovy first,
-                    // leaking the temp-file path into the rendered command.
+                    // here, so $SSH_KEY reaches the shell intact and
+                    // Jenkins's credential-masker can scrub it from logs.
+                    //
+                    // ANSIBLE_HOST_KEY_CHECKING=False skips the interactive
+                    // "are you sure you want to continue connecting" prompt
+                    // on first contact — fine for an ephemeral lab host,
+                    // would be a TOFU footgun in production.
+                    //
+                    // Ansible's `copy` module writes to a temp path and
+                    // rename(2)s into place, so it dodges ETXTBSY on the
+                    // running binary natively — no scp-then-mv dance needed.
                     sh '''
-                        mkdir -p ~/.ssh
-                        ssh-keyscan -H target >> ~/.ssh/known_hosts
-                        # Atomic deploy: scp to a sidecar name, then rename(2)
-                        # over the running binary. Direct overwrite would fail
-                        # with ETXTBSY ("Text file busy") because the kernel
-                        # refuses O_WRONLY on a file that's currently mmap'd
-                        # PROT_EXEC. rename gives the path a fresh inode while
-                        # the running process keeps its old (now-unlinked) one.
-                        scp -i "$SSH_KEY" main "$SSH_USER"@target:/home/laborant/main.new
-                        ssh -i "$SSH_KEY" "$SSH_USER"@target 'mv /home/laborant/main.new /home/laborant/main && sudo systemctl restart main.service'
+                        ANSIBLE_HOST_KEY_CHECKING=False \
+                            ansible-playbook \
+                                -i ansible/inventory.ini \
+                                --private-key "$SSH_KEY" \
+                                ansible/deploy.yml
                     '''
                 }
             }

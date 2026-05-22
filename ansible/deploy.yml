@@ -1,0 +1,48 @@
+---
+# Deploys the freshly-built `main` binary + systemd unit to the `app` group.
+# Run from the Jenkins agent: ansible-playbook -i ansible/inventory.ini ansible/deploy.yml
+- name: Deploy simple-go-server
+  hosts: app
+  gather_facts: false
+
+  tasks:
+    - name: Install systemd unit file
+      # `copy` writes to a temp path on the remote and atomically renames(2)
+      # into place — same trick we used to dodge ETXTBSY by hand. For the
+      # unit file itself this matters less, but it means daemon-reload is
+      # only notified when the file *actually changed*.
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/../main.service"
+        dest: /etc/systemd/system/main.service
+        owner: root
+        group: root
+        mode: "0644"
+      become: true
+      notify: reload systemd
+
+    - name: Deploy binary
+      # Same atomic-rename behaviour applies here — and this is what saves
+      # us from ETXTBSY on the running binary. Ansible writes to
+      # /home/laborant/main.<random>, then rename(2)s over the live file.
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/../main"
+        dest: /home/laborant/main
+        owner: laborant
+        group: laborant
+        mode: "0755"
+      notify: restart main
+
+  handlers:
+    # Handlers only fire if a task notified them AND that task actually
+    # changed something. Idempotent re-runs with no code change → no
+    # restart, no daemon-reload.
+    - name: reload systemd
+      ansible.builtin.systemd:
+        daemon_reload: true
+      become: true
+
+    - name: restart main
+      ansible.builtin.systemd:
+        name: main.service
+        state: restarted
+      become: true
