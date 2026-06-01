@@ -5,12 +5,12 @@ After=network.target
 
 [Service]
 # Runs as the same unprivileged user we deploy as — no sudo for restart,
-# no root-owned files left in /home/laborant.
-User=laborant
-Group=laborant
+# no root-owned files left in /home/ubuntu.
+User=ubuntu
+Group=ubuntu
 
-WorkingDirectory=/home/laborant
-ExecStart=/home/laborant/main
+WorkingDirectory=/home/ubuntu
+ExecStart=/home/ubuntu/main
 
 # Restart on crash but not on clean exit (status 0). `always` would loop
 # even when you intentionally `systemctl stop` mid-shutdown; `on-failure`

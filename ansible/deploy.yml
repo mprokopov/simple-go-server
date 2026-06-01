@@ -23,12 +23,12 @@
     - name: Deploy binary
       # Same atomic-rename behaviour applies here — and this is what saves
       # us from ETXTBSY on the running binary. Ansible writes to
-      # /home/laborant/main.<random>, then rename(2)s over the live file.
+      # /home/ubuntu/main.<random>, then rename(2)s over the live file.
       ansible.builtin.copy:
         src: "{{ playbook_dir }}/../main"
-        dest: /home/laborant/main
-        owner: laborant
-        group: laborant
+        dest: /home/ubuntu/main
+        owner: ubuntu
+        group: ubuntu
         mode: "0755"
       notify: restart main
 
