@@ -48,7 +48,7 @@ pipeline {
                 // credentialsId must match the ID you set when creating the
                 // SSH credential in Jenkins (Manage Jenkins → Credentials).
                 withCredentials([sshUserPrivateKey(
-                    credentialsId: 'ubuntu',
+                    credentialsId: 'laborant',
                     keyFileVariable: 'SSH_KEY',
                     usernameVariable: 'SSH_USER'
                 )]) {
