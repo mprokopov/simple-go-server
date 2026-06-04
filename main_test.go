@@ -1,14 +1,29 @@
 package main
 
-import "testing"
+import (
+	"encoding/json"
+	"io"
+	"net/http"
+	"net/http/httptest"
+	"strings"
+	"testing"
+)
 
-func TestSimpleFactory(t *testing.T) {
-	got := SimpleFactory("example.com:4444")
+// TestHandlerJSON verifies the root handler returns {"hello":"world"} JSON.
+// (The previous SimpleFactory test was removed when the handler switched to a
+// plain map-based payload.)
+func TestHandlerJSON(t *testing.T) {
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	rec := httptest.NewRecorder()
 
-	if got.Name != "Hello" {
-		t.Errorf("Name = %q, want %q", got.Name, "Hello")
+	handler(rec, req)
+
+	body, _ := io.ReadAll(rec.Result().Body)
+	var got map[string]string
+	if err := json.Unmarshal([]byte(strings.TrimSpace(string(body))), &got); err != nil {
+		t.Fatalf("response is not valid JSON: %v (body=%q)", err, string(body))
 	}
-	if got.Url != "example.com:4444" {
-		t.Errorf("Url = %q, want %q", got.Url, "example.com:4444")
+	if got["hello"] != "world" {
+		t.Errorf("hello = %q, want %q", got["hello"], "world")
 	}
 }
