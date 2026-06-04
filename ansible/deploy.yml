@@ -26,9 +26,9 @@
       # /home/ubuntu/main.<random>, then rename(2)s over the live file.
       ansible.builtin.copy:
         src: "{{ playbook_dir }}/../main"
-        dest: /home/ubuntu/main
-        owner: ubuntu
-        group: ubuntu
+        dest: /home/laborant/main
+        owner: laborant
+        group: laborant
         mode: "0755"
       notify: restart main
 
